@@ -172,4 +172,57 @@ Sous licence **MIT**. Merci de citer :
 
 ---
 
+---
+
+## 10. Export d’un catalogue produits vers Google Sheets (SellerAmp SAS)
+
+Ce dépôt fournit aussi un script autonome `catalog_to_sas_sheet.py` qui envoie un catalogue (CSV/Excel) vers la feuille Google
+Sheets SellerAmp SAS.
+
+### 10.1 Prérequis Google Sheets
+
+1. Créez (ou réutilisez) un projet sur <https://console.cloud.google.com/>.
+2. Activez l’API **Google Sheets** et **Google Drive**.
+3. Créez un **compte de service** et générez une clé JSON.
+4. Partagez la feuille Google Sheets `1Q0RmoCgONCwld0cpcSFWf-bWWEMdCnBaiPRuEdv38CA` (onglet `Feuille 1`) avec l’adresse du compte
+   de service (droits *Éditeur*).
+5. Copiez le fichier `.env.example` en `.env` et indiquez soit le chemin du JSON via `GOOGLE_SERVICE_ACCOUNT_JSON_PATH`, soit le
+   contenu brut dans `GOOGLE_SERVICE_ACCOUNT_INFO`.
+
+### 10.2 Installation
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env  # puis éditez .env
+```
+
+Le fichier `.env` permet aussi de configurer :
+
+- `MIN_ROI_PERCENT` et `MIN_PROFIT_EUR` pour filtrer les produits à faible marge ;
+- `RAINFOREST_API_KEY`/`ENABLE_AMAZON_LOOKUP` pour résoudre automatiquement les ASIN manquants via l’API publique Rainforest ;
+- `GOOGLE_SHEET_ID` et `GOOGLE_WORKSHEET_TITLE` si vous souhaitez cibler une autre feuille.
+
+### 10.3 Préparer le catalogue
+
+Le fichier d’entrée doit contenir au minimum les colonnes **Product Name**, **Cost Price** et **ASIN** ou **EAN**. Un exemple est
+fourni dans `examples/catalog_sample.csv`.
+
+### 10.4 Lancement
+
+```bash
+python catalog_to_sas_sheet.py examples/catalog_sample.csv
+```
+
+Le script :
+
+1. Charge les variables d’environnement depuis `.env`.
+2. Lit le catalogue (CSV/Excel), vérifie les colonnes nécessaires et ignore les lignes sans prix valide.
+3. Recherche un ASIN manquant via l’API (optionnelle) si un EAN est disponible.
+4. Ajoute chaque produit à la feuille `Feuille 1` en respectant l’ordre des colonnes demandé (date, nom, ASIN, URL Amazon,
+   prix d’achat, etc.).
+5. Affiche dans la console le nombre de produits ajoutés ainsi que la liste des articles ignorés faute d’ASIN.
+
+Utilisez l’option `--dry-run` pour tester sans écrire dans Google Sheets, et `--log-level DEBUG` pour obtenir des traces
+diagnostiques détaillées.
+
 ### Bonnes expérimentations ! 🧩
